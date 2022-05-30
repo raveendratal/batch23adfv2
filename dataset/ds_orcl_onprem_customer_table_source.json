@@ -1,0 +1,19 @@
+{
+	"name": "ds_orcl_onprem_customer_table_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_oracle_onprem_source",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "onprem_to_cloud"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "SH",
+			"table": "CUSTOMERS"
+		}
+	}
+}
