@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "batch23adfv2"
+		},
+		"ls_azure_blob_target_connectionString": {
+			"value": ""
+		},
+		"ls_oracle_onprem_source_connectionString": {
+			"value": ""
+		},
+		"LinkedSelfHosted-IR_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourcegroups/rg-dev-batch22-de/providers/Microsoft.DataFactory/factories/batch22adfv2/integrationruntimes/SelfHosted-IR"
+		}
+	}
+}
