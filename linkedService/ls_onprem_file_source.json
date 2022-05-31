@@ -5,9 +5,9 @@
 		"annotations": [],
 		"type": "FileServer",
 		"typeProperties": {
-			"host": "E:\\files\\SH_TAB",
+			"host": "E:\\files\\",
 			"userId": "raveendra",
-			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4Mjk0ZTEwYS0xZjJlLTQyNjYtYjZmMS01NmNkNjExNWFhNGYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIyOTQ4ZTg0Yy01MjViLTQ1OTYtYWRjZC1mYWZiMTI3ODM4NjYiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
 		},
 		"connectVia": {
 			"referenceName": "SelfHosted-IR",
