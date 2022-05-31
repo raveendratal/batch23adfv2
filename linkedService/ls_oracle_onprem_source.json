@@ -6,10 +6,10 @@
 		"type": "Oracle",
 		"typeProperties": {
 			"connectionString": "host=localhost;port=1521;sid=ORCL;user id=sh",
-			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI3NjYwMTJmNy01OGFjLTQyNzYtYTNjOS00NTRjZjQyYTBkYWMiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiJmMmMzMTJjZS03OTU0LTQ3MTItYWRkZS04ZmIzNTNlODY5NTciLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
 		},
 		"connectVia": {
-			"referenceName": "LinkedSelfHosted-IR",
+			"referenceName": "SelfHosted-IR",
 			"type": "IntegrationRuntimeReference"
 		}
 	}
