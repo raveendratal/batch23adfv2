@@ -13,8 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "FileServerLocation",
-				"fileName": "customers06-12-2020-10-20-55.csv",
-				"folderPath": "customers"
+				"fileName": "large_data.txt"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",

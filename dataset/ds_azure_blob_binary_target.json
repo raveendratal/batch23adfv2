@@ -1,5 +1,5 @@
 {
-	"name": "ds_azure_blob_customer_csv_target",
+	"name": "ds_azure_blob_binary_target",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_azure_blob_target",
@@ -9,18 +9,13 @@
 			"name": "onprem_to_cloud"
 		},
 		"annotations": [],
-		"type": "DelimitedText",
+		"type": "Binary",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "largefile.csv",
+				"fileName": "large_data.zip",
 				"container": "lake"
-			},
-			"columnDelimiter": ",",
-			"escapeChar": "\\",
-			"firstRowAsHeader": true,
-			"quoteChar": "\""
-		},
-		"schema": []
+			}
+		}
 	}
 }

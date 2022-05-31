@@ -1,0 +1,40 @@
+{
+	"name": "ds_azure_blob_zip_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_blob_target",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "onprem_to_cloud"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "large_data.zip",
+				"container": "lake"
+			},
+			"columnDelimiter": ",",
+			"compressionCodec": "ZipDeflate",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "PK\u0003\u0004\u0014\u0000\u0000\u0000\b\u0000(yLR�����\u001c�\u0000>��j\u000e\u0000\u0000\u0000large_data.txt��ˎ�@\u0010��=\u0012oR�ܾ�Ҍ��\u0013_��\u0001��刑\u0010�?e'\u0013��֛��HYX}tT�����\u000f���s�<|�n���xWW���j�i�:��iꇏ\u001f�$�2v�t�����\u00146��\u0014;\u0013��H�(�__^$�4�Z+Uۺ~�qcW�R���]�q#&�|2��x\u0016\u001b�V��1\u001d���",
+				"type": "String"
+			},
+			{
+				"name": "���s��w�h��;/E�X�4����\u0016��",
+				"type": "String"
+			},
+			{
+				"name": "y�j�Oͻa�]d��&��/g��?��]�-�ev��\u001c.�X|���Oko�/��-m�i�~\u001a�I4�~\u001f'Y�1v\u0019����k\\��M���wcS�~Z\u000e�[7Z?��m}��2}��\u000f�F�U�[��Y\u0016�TuՍ�\u0007]��\u0013�s\u001eŘ�Q�~=��K�R���ϵ��N\u0016\u0018�\u0007_�-y",
+				"type": "String"
+			}
+		]
+	}
+}
