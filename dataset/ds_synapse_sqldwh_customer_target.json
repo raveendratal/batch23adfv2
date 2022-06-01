@@ -1,0 +1,16 @@
+{
+	"name": "ds_synapse_sqldwh_customer_target",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_synapse_sqldwh",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "customer_data"
+		}
+	}
+}
