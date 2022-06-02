@@ -7,23 +7,190 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "batch23adfv2"
 		},
+		"ls_adlsgen2_source_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_adlsgen2_source'"
+		},
 		"ls_azure_blob_target_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_azure_blob_target'"
+		},
+		"ls_azure_synapse_sqldwh_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_azure_synapse_sqldwh'"
+		},
+		"ls_onprem_file_source_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_onprem_file_source'"
 		},
 		"ls_oracle_onprem_source_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'ls_oracle_onprem_source'"
 		},
-		"LinkedSelfHosted-IR_properties_typeProperties_linkedInfo_resourceId": {
+		"ls_adlsgen2_source_properties_typeProperties_url": {
 			"type": "string",
-			"defaultValue": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourcegroups/rg-dev-batch22-de/providers/Microsoft.DataFactory/factories/batch22adfv2/integrationruntimes/SelfHosted-IR"
+			"defaultValue": "https://adlsgen2batch23.dfs.core.windows.net"
+		},
+		"ls_onprem_file_source_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "E:\\files"
+		},
+		"ls_onprem_file_source_properties_typeProperties_userId": {
+			"type": "string",
+			"defaultValue": "raveendra"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_pause_resume_sqldwh')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GetStatus",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": {
+								"value": "https://management.azure.com/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Sql/servers/batch23sqlserver/databases/batch23sqldwh/?api-version=2014-04-01-preview",
+								"type": "Expression"
+							},
+							"method": "GET",
+							"headers": {},
+							"authentication": {
+								"type": "MSI",
+								"resource": {
+									"value": "https://management.azure.com",
+									"type": "Expression"
+								}
+							}
+						}
+					},
+					{
+						"name": "If Condition1",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "GetStatus",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('GetStatus').output.properties.status,'Online')",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Resume",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": {
+											"value": "https://management.azure.com/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Sql/servers/batch23sqlserver/databases/batch23sqldwh/resume?api-version=2014-04-01-preview",
+											"type": "Expression"
+										},
+										"method": "POST",
+										"headers": {},
+										"body": {
+											"value": "{}",
+											"type": "Expression"
+										},
+										"authentication": {
+											"type": "MSI",
+											"resource": {
+												"value": "https://management.azure.com",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "PauseSQLDWH",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": {
+											"value": "https://management.azure.com/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Sql/servers/batch23sqlserver/databases/batch23sqldwh/pause?api-version=2014-04-01-preview",
+											"type": "Expression"
+										},
+										"method": "POST",
+										"headers": {},
+										"body": {
+											"value": "{}",
+											"type": "Expression"
+										},
+										"authentication": {
+											"type": "MSI",
+											"resource": {
+												"value": "https://management.azure.com",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_adlsgen2_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_adlsgen2_source_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_adlsgen2_source_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ls_azure_blob_target')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -38,19 +205,268 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/LinkedSelfHosted-IR')]",
+			"name": "[concat(parameters('factoryName'), '/ls_azure_synapse_sqldwh')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_azure_synapse_sqldwh_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SelfHosted-IR')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_csv_pipe_dynamic_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"source_folder": {
+						"type": "string"
+					},
+					"source_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
 				"typeProperties": {
-					"linkedInfo": {
-						"resourceId": "[parameters('LinkedSelfHosted-IR_properties_typeProperties_linkedInfo_resourceId')]",
-						"authorizationType": "Rbac"
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().source_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/saleshistory/',dataset().source_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_csv_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "cusotmer_source.csv",
+						"folderPath": "landing/customer",
+						"fileSystem": "lake"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "'"
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "loc",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_saleshistory_archive_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"source_folder": {
+						"type": "string"
+					},
+					"source_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().source_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/saleshistory/',dataset().source_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
 					}
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_saleshistory_archive_target')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"target_folder": {
+						"type": "string"
+					},
+					"target_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat(dataset().target_file,utcnow(),'.csv')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('raw/saleshistory/',dataset().target_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_target_binary_dynamic')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"target_folder": {
+						"type": "string"
+					},
+					"target_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().target_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/saleshistory/',dataset().target_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_blob_binary_target')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_blob_target",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "onprem_to_cloud"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "large_data.zip",
+						"container": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_blob_target')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ds_azure_blob_customer_csv_target')]",
@@ -69,7 +485,7 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobStorageLocation",
-						"fileName": "customer.csv",
+						"fileName": "largefile.csv",
 						"container": "lake"
 					},
 					"columnDelimiter": ",",
@@ -84,6 +500,185 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_blob_zip_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_blob_target",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "onprem_to_cloud"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "large_data.zip",
+						"container": "lake"
+					},
+					"columnDelimiter": ",",
+					"compressionCodec": "ZipDeflate",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "PK\u0003\u0004\u0014\u0000\u0000\u0000\b\u0000(yLR�����\u001c�\u0000>��j\u000e\u0000\u0000\u0000large_data.txt��ˎ�@\u0010��=\u0012oR�ܾ�Ҍ��\u0013_��\u0001��刑\u0010�?e'\u0013��֛��HYX}tT�����\u000f���s�<|�n���xWW���j�i�:��iꇏ\u001f�$�2v�t�����\u00146��\u0014;\u0013��H�(�__^$�4�Z+Uۺ~�qcW�R���]�q#&�|2��x\u0016\u001b�V��1\u001d���",
+						"type": "String"
+					},
+					{
+						"name": "���s��w�h��;/E�X�4����\u0016��",
+						"type": "String"
+					},
+					{
+						"name": "y�j�Oͻa�]d��&��/g��?��]�-�ev��\u001c.�X|���Oko�/��-m�i�~\u001a�I4�~\u001f'Y�1v\u0019����k\\��M���wcS�~Z\u000e�[7Z?��m}��2}��\u000f�F�U�[��Y\u0016�TuՍ�\u0007]��\u0013�s\u001eŘ�Q�~=��K�R���ϵ��N\u0016\u0018�\u0007_�-y",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_blob_target')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sqldwh_job_details_lookup')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_synapse_sqldwh",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [
+					{
+						"name": "id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "job_name",
+						"type": "varchar"
+					},
+					{
+						"name": "stg_table",
+						"type": "varchar"
+					},
+					{
+						"name": "target_table",
+						"type": "varchar"
+					},
+					{
+						"name": "proc_name",
+						"type": "varchar"
+					},
+					{
+						"name": "source_folder",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "dynamic"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_synapse_sqldwh')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sqldwh_staging_dynamic_target')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_synapse_sqldwh",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schema_name": {
+						"type": "string",
+						"defaultValue": "dbo"
+					},
+					"table_name": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema_name",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().table_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_synapse_sqldwh')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_synapse_sqldwh_customer_target')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_synapse_sqldwh",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "customer_data"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_synapse_sqldwh')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_onprem_file_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "FileServer",
+				"typeProperties": {
+					"host": "[parameters('ls_onprem_file_source_properties_typeProperties_host')]",
+					"userId": "[parameters('ls_onprem_file_source_properties_typeProperties_userId')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_onprem_file_source_password')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "SelfHosted-IR",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHosted-IR')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_oracle_onprem_source')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -94,46 +689,22 @@
 					"connectionString": "[parameters('ls_oracle_onprem_source_connectionString')]"
 				},
 				"connectVia": {
-					"referenceName": "LinkedSelfHosted-IR",
+					"referenceName": "SelfHosted-IR",
 					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/LinkedSelfHosted-IR')]"
+				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHosted-IR')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_orcl_onprem_customer_table_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_oracle_onprem_source",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "onprem_to_cloud"
-				},
-				"annotations": [],
-				"type": "OracleTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "SH",
-					"table": "CUSTOMERS"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_oracle_onprem_source')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_onprem_to_cloud_migration')]",
+			"name": "[concat(parameters('factoryName'), '/pl_adlsgen2_to_synapse_dwh')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "OnPremToCloud",
+						"name": "AdlsGen2ToSqlDWH",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -146,20 +717,23 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "OracleSource",
-								"partitionOption": "None",
-								"queryTimeout": "02:00:00"
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
+								"type": "DelimitedTextSource",
 								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
+									"type": "DelimitedTextReadSettings"
 								}
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"preCopyScript": "truncate table [dbo].[customer_data]",
+								"writeBehavior": "Insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
 							"translator": {
@@ -173,14 +747,14 @@
 						},
 						"inputs": [
 							{
-								"referenceName": "ds_orcl_onprem_customer_table_source",
+								"referenceName": "ds_adlsgen2_csv_source",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "ds_azure_blob_customer_csv_target",
+								"referenceName": "ds_synapse_sqldwh_customer_target",
 								"type": "DatasetReference",
 								"parameters": {}
 							}
@@ -191,14 +765,46 @@
 					"elapsedTimeMetric": {},
 					"cancelAfter": {}
 				},
-				"folder": {
-					"name": "onprem_to_cloud"
-				},
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_orcl_onprem_customer_table_source')]",
-				"[concat(variables('factoryId'), '/datasets/ds_azure_blob_customer_csv_target')]"
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_csv_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_synapse_sqldwh_customer_target')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_onprem_csv_file_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_onprem_file_source",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "onprem_to_cloud"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "FileServerLocation",
+						"fileName": "large_data.txt"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "\"CUST_ID\"|\"CUST_FIRST_NAME\"|\"CUST_LAST_NAME\"|\"CUST_GENDER\"|\"CUST_YEAR_OF_BIRTH\"|\"CUST_MARITAL_STATUS\"|\"CUST_STREET_ADDRESS\"|\"CUST_POSTAL_CODE\"|\"CUST_CITY\"|\"CUST_CITY_ID\"|\"CUST_STATE_PROVINCE\"|\"CUST_STATE_PROVINCE_ID\"|\"COUNTRY_ID\"|\"CUST_MAIN_PHONE_NUMBER\"|\"CUST_INCOME_LEVEL\"|\"CUST_CREDIT_LIMIT\"|\"CUST_EMAIL\"|\"CUST_TOTAL\"|\"CUST_TOTAL_ID\"|\"CUST_SRC_ID\"|\"CUST_EFF_FROM\"|\"CUST_EFF_TO\"|\"CUST_VALID\"",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_onprem_file_source')]"
 			]
 		}
 	]

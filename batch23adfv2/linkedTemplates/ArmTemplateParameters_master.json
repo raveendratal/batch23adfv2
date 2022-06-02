@@ -5,14 +5,29 @@
 		"factoryName": {
 			"value": "batch23adfv2"
 		},
+		"ls_adlsgen2_source_accountKey": {
+			"value": ""
+		},
 		"ls_azure_blob_target_connectionString": {
+			"value": ""
+		},
+		"ls_azure_synapse_sqldwh_connectionString": {
+			"value": ""
+		},
+		"ls_onprem_file_source_password": {
 			"value": ""
 		},
 		"ls_oracle_onprem_source_connectionString": {
 			"value": ""
 		},
-		"LinkedSelfHosted-IR_properties_typeProperties_linkedInfo_resourceId": {
-			"value": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourcegroups/rg-dev-batch22-de/providers/Microsoft.DataFactory/factories/batch22adfv2/integrationruntimes/SelfHosted-IR"
+		"ls_adlsgen2_source_properties_typeProperties_url": {
+			"value": "https://adlsgen2batch23.dfs.core.windows.net"
+		},
+		"ls_onprem_file_source_properties_typeProperties_host": {
+			"value": "E:\\files"
+		},
+		"ls_onprem_file_source_properties_typeProperties_userId": {
+			"value": "raveendra"
 		},
 		"containerUri": {
 			"value": ""
