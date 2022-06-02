@@ -246,6 +246,78 @@
 					"referenceName": "ls_azure_synapse_sqldwh",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "Archive",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Target_proc",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"deleteFilesAfterCompletion": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_adlsgen2_saleshistory_archive_source",
+						"type": "DatasetReference",
+						"parameters": {
+							"source_folder": {
+								"value": "@pipeline().parameters.source_folder",
+								"type": "Expression"
+							},
+							"source_file": {
+								"value": "@activity('FilterOnlyFiles').output.value[0].name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adlsgen2_saleshistory_archive_target",
+						"type": "DatasetReference",
+						"parameters": {
+							"target_folder": {
+								"value": "@pipeline().parameters.source_folder",
+								"type": "Expression"
+							},
+							"target_file": {
+								"value": "@pipeline().parameters.job_name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
 			}
 		],
 		"parameters": {
