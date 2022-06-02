@@ -1,0 +1,28 @@
+{
+	"name": "ds_onprem_file_getmetadata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onprem_file_source",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"source_folder": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "sales_synapse_load"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"folderPath": {
+					"value": "@concat('SH_TAB','/',dataset().source_folder)",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

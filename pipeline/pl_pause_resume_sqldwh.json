@@ -1,0 +1,120 @@
+{
+	"name": "pl_pause_resume_sqldwh",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetStatus",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://management.azure.com/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Sql/servers/batch23sqlserver/databases/batch23sqldwh/?api-version=2014-04-01-preview",
+						"type": "Expression"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": {
+							"value": "https://management.azure.com",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "If Condition1",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "GetStatus",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('GetStatus').output.properties.status,'Online')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Resume",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "https://management.azure.com/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Sql/servers/batch23sqlserver/databases/batch23sqldwh/resume?api-version=2014-04-01-preview",
+									"type": "Expression"
+								},
+								"method": "POST",
+								"body": {
+									"value": "{}",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": {
+										"value": "https://management.azure.com",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "PauseSQLDWH",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "https://management.azure.com/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Sql/servers/batch23sqlserver/databases/batch23sqldwh/pause?api-version=2014-04-01-preview",
+									"type": "Expression"
+								},
+								"method": "POST",
+								"body": {
+									"value": "{}",
+									"type": "Expression"
+								},
+								"authentication": {
+									"type": "MSI",
+									"resource": {
+										"value": "https://management.azure.com",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}

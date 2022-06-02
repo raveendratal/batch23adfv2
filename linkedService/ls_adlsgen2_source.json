@@ -1,0 +1,12 @@
+{
+	"name": "ls_adlsgen2_source",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://adlsgen2batch23.dfs.core.windows.net",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDRFMTkxNTJBLUJBQkYtNEUzRC04N0VELUQxQzlCOTg0OTk4Q18wOTk0NTY5My1mMGEyLTRkMmYtOWI3Ny1kMGU0YWY2OTRiOGEiDQp9"
+		}
+	}
+}

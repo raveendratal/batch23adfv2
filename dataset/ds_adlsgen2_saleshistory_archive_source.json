@@ -1,0 +1,36 @@
+{
+	"name": "ds_adlsgen2_saleshistory_archive_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_adlsgen2_source",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"source_folder": {
+				"type": "string"
+			},
+			"source_file": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "sales_synapse_load"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().source_file",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat('landing/saleshistory/',dataset().source_folder)",
+					"type": "Expression"
+				},
+				"fileSystem": "lake"
+			}
+		}
+	}
+}
