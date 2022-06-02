@@ -170,7 +170,7 @@
 					"sink": {
 						"type": "SqlDWSink",
 						"preCopyScript": {
-							"value": "truncate table @{pipeline().parameters.source_folder}",
+							"value": "truncate table @{pipeline().parameters.stg_table}",
 							"type": "Expression"
 						},
 						"writeBehavior": "Insert",
