@@ -253,7 +253,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Adlsgen2ToSQLStaging",
+						"activity": "Target_proc",
 						"dependencyConditions": [
 							"Succeeded"
 						]
