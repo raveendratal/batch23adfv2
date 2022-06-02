@@ -1,0 +1,35 @@
+{
+	"name": "ds_onprem_file_binary_dynamic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onprem_file_source",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"source_folder": {
+				"type": "string"
+			},
+			"source_file": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "sales_synapse_load"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@dataset().source_file",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat('SH_TAB','/',dataset().source_folder)",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

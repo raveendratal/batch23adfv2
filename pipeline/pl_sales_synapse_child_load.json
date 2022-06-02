@@ -1,0 +1,165 @@
+{
+	"name": "pl_sales_synapse_child_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetMetadataOnprem",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_onprem_file_getmetadata",
+						"type": "DatasetReference",
+						"parameters": {
+							"source_folder": {
+								"value": "@pipeline().parameters.source_folder",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"created",
+						"childItems",
+						"exists",
+						"itemName",
+						"lastModified",
+						"itemType"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "FilterOnlyFiles",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "GetMetadataOnprem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetMetadataOnprem').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().type,'File')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "OnPremToAdlsgen2",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "FilterOnlyFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "FileServerReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_onprem_file_binary_dynamic",
+						"type": "DatasetReference",
+						"parameters": {
+							"source_folder": {
+								"value": "@pipeline().parameters.source_folder",
+								"type": "Expression"
+							},
+							"source_file": {
+								"value": "@activity('FilterOnlyFiles').output.value[0].name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_adlsgen2_target_binary_dynamic",
+						"type": "DatasetReference",
+						"parameters": {
+							"target_folder": {
+								"value": "@pipeline().parameters.source_folder",
+								"type": "Expression"
+							},
+							"target_file": {
+								"value": "@activity('FilterOnlyFiles').output.value[0].name",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"id": {
+				"type": "string"
+			},
+			"job_name": {
+				"type": "string"
+			},
+			"stg_table": {
+				"type": "string"
+			},
+			"target_table": {
+				"type": "string"
+			},
+			"proc_name": {
+				"type": "string"
+			},
+			"source_folder": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "sales_synapse_load"
+		},
+		"annotations": []
+	}
+}
