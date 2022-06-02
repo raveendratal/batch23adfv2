@@ -35,6 +35,7 @@
 					],
 					"storeSettings": {
 						"type": "FileServerReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -252,7 +253,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Target_proc",
+						"activity": "Adlsgen2ToSQLStaging",
 						"dependencyConditions": [
 							"Succeeded"
 						]
