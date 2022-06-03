@@ -179,6 +179,22 @@
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"validateDataConsistency": true,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "ls_adlsgen2_source",
+								"type": "LinkedServiceReference"
+							},
+							"path": "lake/logs"
+						}
+					},
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,
