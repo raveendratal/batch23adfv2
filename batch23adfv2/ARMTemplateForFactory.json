@@ -766,7 +766,7 @@
 						],
 						"policy": {
 							"timeout": "7.00:00:00",
-							"retry": 0,
+							"retry": 3,
 							"retryIntervalInSeconds": 30,
 							"secureOutput": false,
 							"secureInput": false
@@ -798,8 +798,8 @@
 							"timeout": "7.00:00:00",
 							"retry": 0,
 							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
+							"secureOutput": true,
+							"secureInput": true
 						},
 						"userProperties": [],
 						"typeProperties": {
@@ -949,7 +949,7 @@
 								"value": "@activity('jobDetails').output.value",
 								"type": "Expression"
 							},
-							"batchCount": 5,
+							"isSequential": true,
 							"activities": [
 								{
 									"name": "salesLoadChild",
