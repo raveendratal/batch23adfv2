@@ -714,6 +714,22 @@
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"validateDataConsistency": true,
+							"logSettings": {
+								"enableCopyActivityLog": true,
+								"copyActivityLogSettings": {
+									"logLevel": "Warning",
+									"enableReliableLogging": false
+								},
+								"logLocationSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_adlsgen2_source",
+										"type": "LinkedServiceReference"
+									},
+									"path": "lake/logs"
+								}
+							},
 							"translator": {
 								"type": "TabularTranslator",
 								"typeConversion": true,
@@ -893,7 +909,8 @@
 				"[concat(variables('factoryId'), '/datasets/ds_sqldwh_staging_dynamic_target')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_azure_synapse_sqldwh')]",
 				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_saleshistory_archive_source')]",
-				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_saleshistory_archive_target')]"
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_saleshistory_archive_target')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
 			]
 		},
 		{
@@ -949,7 +966,8 @@
 								"value": "@activity('jobDetails').output.value",
 								"type": "Expression"
 							},
-							"isSequential": true,
+							"isSequential": false,
+							"batchCount": 5,
 							"activities": [
 								{
 									"name": "salesLoadChild",

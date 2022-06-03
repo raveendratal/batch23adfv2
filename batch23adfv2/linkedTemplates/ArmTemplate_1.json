@@ -586,6 +586,22 @@
 								"disableMetricsCollection": false
 							},
 							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"validateDataConsistency": true,
+							"logSettings": {
+								"enableCopyActivityLog": true,
+								"copyActivityLogSettings": {
+									"logLevel": "Warning",
+									"enableReliableLogging": false
+								},
+								"logLocationSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_adlsgen2_source",
+										"type": "LinkedServiceReference"
+									},
+									"path": "lake/logs"
+								}
+							},
 							"translator": {
 								"type": "TabularTranslator",
 								"typeConversion": true,
@@ -815,7 +831,8 @@
 								"value": "@activity('jobDetails').output.value",
 								"type": "Expression"
 							},
-							"isSequential": true,
+							"isSequential": false,
+							"batchCount": 5,
 							"activities": [
 								{
 									"name": "salesLoadChild",
