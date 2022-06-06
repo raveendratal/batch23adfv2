@@ -13,6 +13,111 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/pl_adlsgen2_to_synapse_dwh')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AdlsGen2ToSqlDWH",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"preCopyScript": "truncate table [dbo].[customer_data]",
+								"writeBehavior": "Insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_adlsgen2_csv_source",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_sqldwh_customer_target",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_onprem_csv_file_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_onprem_file_source",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "onprem_to_cloud"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "FileServerLocation",
+						"fileName": "large_data.txt"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "\"CUST_ID\"|\"CUST_FIRST_NAME\"|\"CUST_LAST_NAME\"|\"CUST_GENDER\"|\"CUST_YEAR_OF_BIRTH\"|\"CUST_MARITAL_STATUS\"|\"CUST_STREET_ADDRESS\"|\"CUST_POSTAL_CODE\"|\"CUST_CITY\"|\"CUST_CITY_ID\"|\"CUST_STATE_PROVINCE\"|\"CUST_STATE_PROVINCE_ID\"|\"COUNTRY_ID\"|\"CUST_MAIN_PHONE_NUMBER\"|\"CUST_INCOME_LEVEL\"|\"CUST_CREDIT_LIMIT\"|\"CUST_EMAIL\"|\"CUST_TOTAL\"|\"CUST_TOTAL_ID\"|\"CUST_SRC_ID\"|\"CUST_EFF_FROM\"|\"CUST_EFF_TO\"|\"CUST_VALID\"",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_onprem_file_binary_dynamic')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -326,6 +431,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_onprem_csv_file_source')]",
 				"[concat(variables('factoryId'), '/datasets/ds_onprem_file_binary_source')]"
 			]
 		},
