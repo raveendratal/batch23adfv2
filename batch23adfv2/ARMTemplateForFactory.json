@@ -31,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "https://adlsgen2batch23.dfs.core.windows.net"
 		},
+		"ls_azure_kv_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://batch23akv.vault.azure.net/"
+		},
 		"ls_onprem_file_source_properties_typeProperties_host": {
 			"type": "string",
 			"defaultValue": "E:\\files"
@@ -38,16 +42,49 @@
 		"ls_onprem_file_source_properties_typeProperties_userId": {
 			"type": "string",
 			"defaultValue": "raveendra"
-		},
-		"ls_azure_kv_properties_typeProperties_baseUrl": {
-			"type": "string",
-			"defaultValue": "https://batch23akv.vault.azure.net/"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_adb_notebooks')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Shared/sample"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_adb_workspace",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adb_workspace')]"
+			]
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_adlsgen2_to_synapse_dwh')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -1615,6 +1652,30 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_adb_workspace')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-1693909736005241.1.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_azure_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "adb-token-akv-secret"
+					},
+					"existingClusterId": "0606-153949-1f8c845b"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_kv')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_adlsgen2_source')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -1640,6 +1701,19 @@
 				"type": "AzureBlobStorage",
 				"typeProperties": {
 					"connectionString": "[parameters('ls_azure_blob_target_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_kv')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_azure_kv_properties_typeProperties_baseUrl')]"
 				}
 			},
 			"dependsOn": []
@@ -1716,72 +1790,6 @@
 			"properties": {
 				"type": "SelfHosted",
 				"typeProperties": {}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_azure_kv')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureKeyVault",
-				"typeProperties": {
-					"baseUrl": "[parameters('ls_azure_kv_properties_typeProperties_baseUrl')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ls_adb_workspace')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureDatabricks",
-				"typeProperties": {
-					"domain": "https://adb-1693909736005241.1.azuredatabricks.net",
-					"accessToken": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "ls_azure_kv",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "adb-token-akv-secret"
-					},
-					"existingClusterId": "0606-153949-1f8c845b"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_azure_kv')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_adb_notebooks')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Notebook1",
-						"type": "DatabricksNotebook",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"annotations": []
 			},
 			"dependsOn": []
 		}

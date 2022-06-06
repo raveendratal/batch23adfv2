@@ -31,6 +31,10 @@
 			"type": "string",
 			"defaultValue": "https://adlsgen2batch23.dfs.core.windows.net"
 		},
+		"ls_azure_kv_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://batch23akv.vault.azure.net/"
+		},
 		"ls_onprem_file_source_properties_typeProperties_host": {
 			"type": "string",
 			"defaultValue": "E:\\files"
@@ -38,10 +42,6 @@
 		"ls_onprem_file_source_properties_typeProperties_userId": {
 			"type": "string",
 			"defaultValue": "raveendra"
-		},
-		"ls_azure_kv_properties_typeProperties_baseUrl": {
-			"type": "string",
-			"defaultValue": "https://batch23akv.vault.azure.net/"
 		},
 		"containerUri": {
 			"type": "string",

@@ -23,14 +23,14 @@
 		"ls_adlsgen2_source_properties_typeProperties_url": {
 			"value": "https://adlsgen2batch23.dfs.core.windows.net"
 		},
+		"ls_azure_kv_properties_typeProperties_baseUrl": {
+			"value": "https://batch23akv.vault.azure.net/"
+		},
 		"ls_onprem_file_source_properties_typeProperties_host": {
 			"value": "E:\\files"
 		},
 		"ls_onprem_file_source_properties_typeProperties_userId": {
 			"value": "raveendra"
-		},
-		"ls_azure_kv_properties_typeProperties_baseUrl": {
-			"value": "https://batch23akv.vault.azure.net/"
 		},
 		"containerUri": {
 			"value": ""
