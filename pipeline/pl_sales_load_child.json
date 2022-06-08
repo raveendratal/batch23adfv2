@@ -1,0 +1,214 @@
+{
+	"name": "pl_sales_load_child",
+	"properties": {
+		"activities": [
+			{
+				"name": "GetMetadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_sales_onprem_getmetadata",
+						"type": "DatasetReference",
+						"parameters": {
+							"source_folder": {
+								"value": "@pipeline().parameters.source_folder_name",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems",
+						"exists"
+					],
+					"storeSettings": {
+						"type": "FileServerReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "FilterOnlyFiles",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "GetMetadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetMetadata').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().type,'File')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "FilterOnlyFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('FilterOnlyFiles').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "OnpremToadlsLanding",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "BinarySource",
+									"storeSettings": {
+										"type": "FileServerReadSettings",
+										"recursive": true
+									},
+									"formatSettings": {
+										"type": "BinaryReadSettings"
+									}
+								},
+								"sink": {
+									"type": "BinarySink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_sales_onprem_binary",
+									"type": "DatasetReference",
+									"parameters": {
+										"source_folder": {
+											"value": "@pipeline().parameters.source_folder_name",
+											"type": "Expression"
+										},
+										"source_file": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sales_adlsgen2_target",
+									"type": "DatasetReference",
+									"parameters": {
+										"target_folder": {
+											"value": "@pipeline().parameters.source_folder_name",
+											"type": "Expression"
+										},
+										"target_file": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"job_id": {
+				"type": "string"
+			},
+			"job_name": {
+				"type": "string"
+			},
+			"source_folder_name": {
+				"type": "string"
+			},
+			"landing_zone_file_path": {
+				"type": "string"
+			},
+			"landing_zone_folder_name": {
+				"type": "string"
+			},
+			"landing_zone_file_name": {
+				"type": "string"
+			},
+			"landing_zone_file_type": {
+				"type": "string"
+			},
+			"staging_zone_database_name": {
+				"type": "string"
+			},
+			"staging_zone_table_name": {
+				"type": "string"
+			},
+			"staging_zone_table_pk_column": {
+				"type": "string"
+			},
+			"curation_zone_database_name": {
+				"type": "string"
+			},
+			"curation_zone_table_name": {
+				"type": "string"
+			},
+			"curation_zone_table_pk_column": {
+				"type": "string"
+			},
+			"dw_zone_database_name": {
+				"type": "string"
+			},
+			"dw_zone_table_name": {
+				"type": "string"
+			},
+			"dw_zone_table_pk_column": {
+				"type": "string"
+			},
+			"pyspark_schema": {
+				"type": "string"
+			},
+			"table_type": {
+				"type": "string"
+			},
+			"job_type": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "sales_data_load"
+		},
+		"annotations": []
+	}
+}

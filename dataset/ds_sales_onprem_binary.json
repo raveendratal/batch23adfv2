@@ -1,0 +1,35 @@
+{
+	"name": "ds_sales_onprem_binary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onprem_file_source",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"source_folder": {
+				"type": "string"
+			},
+			"source_file": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "sales_data_load"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"fileName": {
+					"value": "@dataset().source_file",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().source_folder",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

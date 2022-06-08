@@ -1,0 +1,150 @@
+{
+	"name": "pl_sales_load_master",
+	"properties": {
+		"activities": [
+			{
+				"name": "jobDetails",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureDatabricksDeltaLakeSource",
+						"query": {
+							"value": "select * from jobs.JOB_LIST_DYNAMIC where  job_status=1 order by job_id",
+							"type": "Expression"
+						}
+					},
+					"dataset": {
+						"referenceName": "ds_adb_deltalake_lookup",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "jobDetails",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('jobDetails').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "sales_child_pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "pl_sales_load_child",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"job_id": {
+										"value": "@item().job_id",
+										"type": "Expression"
+									},
+									"job_name": {
+										"value": "@item().job_name",
+										"type": "Expression"
+									},
+									"source_folder_name": {
+										"value": "@item().source_folder_name",
+										"type": "Expression"
+									},
+									"landing_zone_file_path": {
+										"value": "@item().landing_zone_file_path",
+										"type": "Expression"
+									},
+									"landing_zone_folder_name": {
+										"value": "@item().landing_zone_folder_name",
+										"type": "Expression"
+									},
+									"landing_zone_file_name": {
+										"value": "@item().landing_zone_file_name",
+										"type": "Expression"
+									},
+									"landing_zone_file_type": {
+										"value": "@item().landing_zone_file_type",
+										"type": "Expression"
+									},
+									"staging_zone_database_name": {
+										"value": "@item().staging_zone_database_name",
+										"type": "Expression"
+									},
+									"staging_zone_table_name": {
+										"value": "@item().staging_zone_table_name",
+										"type": "Expression"
+									},
+									"staging_zone_table_pk_column": {
+										"value": "@item().staging_zone_table_pk_column",
+										"type": "Expression"
+									},
+									"curation_zone_database_name": {
+										"value": "@item().curation_zone_database_name",
+										"type": "Expression"
+									},
+									"curation_zone_table_name": {
+										"value": "@item().curation_zone_table_name",
+										"type": "Expression"
+									},
+									"curation_zone_table_pk_column": {
+										"value": "@item().curation_zone_table_pk_column",
+										"type": "Expression"
+									},
+									"dw_zone_database_name": {
+										"value": "@item().dw_zone_database_name",
+										"type": "Expression"
+									},
+									"dw_zone_table_name": {
+										"value": "@item().dw_zone_table_name",
+										"type": "Expression"
+									},
+									"dw_zone_table_pk_column": {
+										"value": "@item().dw_zone_table_pk_column",
+										"type": "Expression"
+									},
+									"pyspark_schema": {
+										"value": "@item().pyspark_schema",
+										"type": "Expression"
+									},
+									"table_type": {
+										"value": "@item().table_type",
+										"type": "Expression"
+									},
+									"job_type": {
+										"value": "@item().job_type",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "sales_data_load"
+		},
+		"annotations": []
+	}
+}
