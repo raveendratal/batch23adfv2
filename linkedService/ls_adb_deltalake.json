@@ -1,0 +1,19 @@
+{
+	"name": "ls_adb_deltalake",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLake",
+		"typeProperties": {
+			"domain": "https://adb-1693909736005241.1.azuredatabricks.net",
+			"clusterId": "0608-152746-z4gzme2x",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_azure_kv",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "adb-token-akv-secret"
+			}
+		}
+	}
+}
