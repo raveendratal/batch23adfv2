@@ -5,9 +5,6 @@
 		"factoryName": {
 			"value": "batch23adfv2"
 		},
-		"ls_adlsgen2_source_accountKey": {
-			"value": ""
-		},
 		"ls_azure_blob_target_connectionString": {
 			"value": ""
 		},
@@ -27,7 +24,7 @@
 			"value": "https://batch23akv.vault.azure.net/"
 		},
 		"ls_onprem_file_source_properties_typeProperties_host": {
-			"value": "E:\\files"
+			"value": "E:\\files\\SH"
 		},
 		"ls_onprem_file_source_properties_typeProperties_userId": {
 			"value": "raveendra"
