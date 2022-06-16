@@ -42,6 +42,10 @@
 		"SelfHostedShared-IR_properties_typeProperties_linkedInfo_resourceId": {
 			"type": "string",
 			"defaultValue": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourcegroups/rg-batch24-de-dev/providers/Microsoft.DataFactory/factories/batch24adfv2/integrationruntimes/Azure-SelfHosted-IR"
+		},
+		"event_based_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourceGroups/de-batch23-development-rg/providers/Microsoft.Storage/storageAccounts/adlsgen2batch23"
 		}
 	},
 	"variables": {
@@ -2881,6 +2885,44 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/trigger1')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_sales_load_child",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2022-06-15T00:54:00",
+						"timeZone": "India Standard Time",
+						"schedule": {
+							"minutes": [
+								35
+							],
+							"hours": [
+								21
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_sales_load_child')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/SelfHostedShared-IR')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
@@ -2894,6 +2936,36 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/event_based')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_adb_notebooks",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/lake/blobs/dept.csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('event_based_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_adb_notebooks')]"
+			]
 		}
 	]
 }
