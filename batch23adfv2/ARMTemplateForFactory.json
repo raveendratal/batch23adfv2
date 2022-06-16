@@ -38,6 +38,10 @@
 		"ls_onprem_file_source_properties_typeProperties_userId": {
 			"type": "string",
 			"defaultValue": "raveendra"
+		},
+		"SelfHostedShared-IR_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourcegroups/rg-batch24-de-dev/providers/Microsoft.DataFactory/factories/batch24adfv2/integrationruntimes/Azure-SelfHosted-IR"
 		}
 	},
 	"variables": {
@@ -2838,9 +2842,15 @@
 						"type": "SecureString",
 						"value": "[parameters('ls_onprem_file_source_password')]"
 					}
+				},
+				"connectVia": {
+					"referenceName": "SelfHostedShared-IR",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHostedShared-IR')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/ls_oracle_onprem_source')]",
@@ -2859,21 +2869,16 @@
 						},
 						"secretName": "oracle-hs-password-akv-secret"
 					}
+				},
+				"connectVia": {
+					"referenceName": "SelfHostedShared-IR",
+					"type": "IntegrationRuntimeReference"
 				}
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/SelfHostedShared-IR')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_azure_kv')]"
 			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SelfHosted-IR')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "SelfHosted",
-				"typeProperties": {}
-			},
-			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/SelfHostedShared-IR')]",
@@ -2881,7 +2886,12 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
-				"typeProperties": {}
+				"typeProperties": {
+					"linkedInfo": {
+						"resourceId": "[parameters('SelfHostedShared-IR_properties_typeProperties_linkedInfo_resourceId')]",
+						"authorizationType": "Rbac"
+					}
+				}
 			},
 			"dependsOn": []
 		}

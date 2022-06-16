@@ -39,6 +39,10 @@
 			"type": "string",
 			"defaultValue": "raveendra"
 		},
+		"SelfHostedShared-IR_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/e0bf1971-b822-46ca-8e4a-72555f0a959e/resourcegroups/rg-batch24-de-dev/providers/Microsoft.DataFactory/factories/batch24adfv2/integrationruntimes/Azure-SelfHosted-IR"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -75,8 +79,17 @@
 					"ls_onprem_file_source_password": {
 						"value": "[parameters('ls_onprem_file_source_password')]"
 					},
+					"ls_oracle_onprem_source_connectionString": {
+						"value": "[parameters('ls_oracle_onprem_source_connectionString')]"
+					},
 					"ls_azure_kv_properties_typeProperties_baseUrl": {
 						"value": "[parameters('ls_azure_kv_properties_typeProperties_baseUrl')]"
+					},
+					"SelfHostedShared-IR_properties_typeProperties_linkedInfo_resourceId": {
+						"value": "[parameters('SelfHostedShared-IR_properties_typeProperties_linkedInfo_resourceId')]"
+					},
+					"ls_adlsgen2_source_properties_typeProperties_url": {
+						"value": "[parameters('ls_adlsgen2_source_properties_typeProperties_url')]"
 					},
 					"ls_onprem_file_source_properties_typeProperties_host": {
 						"value": "[parameters('ls_onprem_file_source_properties_typeProperties_host')]"
@@ -101,12 +114,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"ls_oracle_onprem_source_connectionString": {
-						"value": "[parameters('ls_oracle_onprem_source_connectionString')]"
-					},
-					"ls_adlsgen2_source_properties_typeProperties_url": {
-						"value": "[parameters('ls_adlsgen2_source_properties_typeProperties_url')]"
 					}
 				}
 			},
