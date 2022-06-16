@@ -16,11 +16,11 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2022-06-16T15:54:00Z",
-				"timeZone": "UTC",
+				"startTime": "2022-06-16T15:54:00",
+				"timeZone": "India Standard Time",
 				"schedule": {
 					"minutes": [
-						27
+						28
 					],
 					"hours": [
 						21
