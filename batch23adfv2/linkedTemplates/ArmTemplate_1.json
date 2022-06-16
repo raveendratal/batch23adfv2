@@ -6,6 +6,14 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "batch23adfv2"
+		},
+		"ls_oracle_onprem_source_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_oracle_onprem_source'"
+		},
+		"ls_adlsgen2_source_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlsgen2batch23.dfs.core.windows.net"
 		}
 	},
 	"variables": {
@@ -13,542 +21,78 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_saleshistory_archive_target')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
+			"name": "[concat(parameters('factoryName'), '/ls_adb_workspace')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_adlsgen2_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"target_folder": {
-						"type": "string"
-					},
-					"target_file": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_synapse_load"
-				},
 				"annotations": [],
-				"type": "Binary",
+				"type": "AzureDatabricks",
 				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@concat(dataset().target_file,utcnow(),'.csv')",
-							"type": "Expression"
+					"domain": "https://adb-1693909736005241.1.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_azure_kv",
+							"type": "LinkedServiceReference"
 						},
-						"folderPath": {
-							"value": "@concat('raw/saleshistory/',dataset().target_folder)",
-							"type": "Expression"
+						"secretName": "adb-token-akv-secret"
+					},
+					"existingClusterId": "0608-152746-z4gzme2x"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_adlsgen2_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_adlsgen2_source_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_azure_kv",
+							"type": "LinkedServiceReference"
 						},
-						"fileSystem": "lake"
+						"secretName": "azure-adlsgen2-accountkey-secret"
 					}
 				}
 			},
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_target_binary_dynamic')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
+			"name": "[concat(parameters('factoryName'), '/ls_oracle_onprem_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_adlsgen2_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"target_folder": {
-						"type": "string"
-					},
-					"target_file": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_synapse_load"
-				},
 				"annotations": [],
-				"type": "Binary",
+				"type": "Oracle",
 				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().target_file",
-							"type": "Expression"
+					"connectionString": "[parameters('ls_oracle_onprem_source_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_azure_kv",
+							"type": "LinkedServiceReference"
 						},
-						"folderPath": {
-							"value": "@concat('landing/saleshistory/',dataset().target_folder)",
-							"type": "Expression"
-						},
-						"fileSystem": "lake"
+						"secretName": "oracle-hs-password-akv-secret"
 					}
 				}
 			},
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ds_onprem_csv_file_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_onprem_file_source",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "onprem_to_cloud"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"fileName": "large_data.txt"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "\"CUST_ID\"|\"CUST_FIRST_NAME\"|\"CUST_LAST_NAME\"|\"CUST_GENDER\"|\"CUST_YEAR_OF_BIRTH\"|\"CUST_MARITAL_STATUS\"|\"CUST_STREET_ADDRESS\"|\"CUST_POSTAL_CODE\"|\"CUST_CITY\"|\"CUST_CITY_ID\"|\"CUST_STATE_PROVINCE\"|\"CUST_STATE_PROVINCE_ID\"|\"COUNTRY_ID\"|\"CUST_MAIN_PHONE_NUMBER\"|\"CUST_INCOME_LEVEL\"|\"CUST_CREDIT_LIMIT\"|\"CUST_EMAIL\"|\"CUST_TOTAL\"|\"CUST_TOTAL_ID\"|\"CUST_SRC_ID\"|\"CUST_EFF_FROM\"|\"CUST_EFF_TO\"|\"CUST_VALID\"",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_onprem_file_binary_dynamic')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_onprem_file_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"source_folder": {
-						"type": "string"
-					},
-					"source_file": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_synapse_load"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"fileName": {
-							"value": "@dataset().source_file",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@concat('SH_TAB','/',dataset().source_folder)",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_onprem_file_binary_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_onprem_file_source",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "onprem_to_cloud"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"fileName": "large_data.zip"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_onprem_file_getmetadata')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_onprem_file_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"source_folder": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_synapse_load"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"folderPath": {
-							"value": "@concat('SH_TAB','/',dataset().source_folder)",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_orcl_onprem_customer_table_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_oracle_onprem_source",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "onprem_to_cloud"
-				},
-				"annotations": [],
-				"type": "OracleTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "SH",
-					"table": "CUSTOMERS"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_adb_deltalake_lookup')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_adb_deltalake",
-					"type": "LinkedServiceReference"
-				},
-				"folder": {
-					"name": "sales_data_load"
-				},
-				"annotations": [],
-				"type": "AzureDatabricksDeltaLakeDataset",
-				"typeProperties": {
-					"database": "jobs",
-					"table": "job_list_dynamic"
-				},
-				"schema": [
-					{
-						"name": "job_id",
-						"type": "string"
-					},
-					{
-						"name": "job_name",
-						"type": "string"
-					},
-					{
-						"name": "source_database_host",
-						"type": "string"
-					},
-					{
-						"name": "source_database_username",
-						"type": "string"
-					},
-					{
-						"name": "source_database_password",
-						"type": "string"
-					},
-					{
-						"name": "source_database_name",
-						"type": "string"
-					},
-					{
-						"name": "source_schema_name",
-						"type": "string"
-					},
-					{
-						"name": "source_table_name",
-						"type": "string"
-					},
-					{
-						"name": "source_file_path",
-						"type": "string"
-					},
-					{
-						"name": "source_file_username",
-						"type": "string"
-					},
-					{
-						"name": "source_file_password",
-						"type": "string"
-					},
-					{
-						"name": "source_folder_name",
-						"type": "string"
-					},
-					{
-						"name": "source_file_name",
-						"type": "string"
-					},
-					{
-						"name": "source_file_type",
-						"type": "string"
-					},
-					{
-						"name": "landing_zone_file_path",
-						"type": "string"
-					},
-					{
-						"name": "landing_zone_folder_name",
-						"type": "string"
-					},
-					{
-						"name": "landing_zone_file_name",
-						"type": "string"
-					},
-					{
-						"name": "landing_zone_file_type",
-						"type": "string"
-					},
-					{
-						"name": "staging_zone_database_name",
-						"type": "string"
-					},
-					{
-						"name": "staging_zone_schema_name",
-						"type": "string"
-					},
-					{
-						"name": "staging_zone_table_name",
-						"type": "string"
-					},
-					{
-						"name": "staging_zone_table_pk_column",
-						"type": "string"
-					},
-					{
-						"name": "curation_zone_database_name",
-						"type": "string"
-					},
-					{
-						"name": "curation_zone_schema_name",
-						"type": "string"
-					},
-					{
-						"name": "curation_zone_table_name",
-						"type": "string"
-					},
-					{
-						"name": "curation_zone_table_pk_column",
-						"type": "string"
-					},
-					{
-						"name": "dw_zone_database_name",
-						"type": "string"
-					},
-					{
-						"name": "dw_zone_schema_name",
-						"type": "string"
-					},
-					{
-						"name": "dw_zone_table_name",
-						"type": "string"
-					},
-					{
-						"name": "dw_zone_table_pk_column",
-						"type": "string"
-					},
-					{
-						"name": "raw_zone_file_path",
-						"type": "string"
-					},
-					{
-						"name": "raw_zone_folder_name",
-						"type": "string"
-					},
-					{
-						"name": "raw_zone_file_name",
-						"type": "string"
-					},
-					{
-						"name": "raw_zone_file_type",
-						"type": "string"
-					},
-					{
-						"name": "pyspark_schema",
-						"type": "string"
-					},
-					{
-						"name": "table_type",
-						"type": "string"
-					},
-					{
-						"name": "job_type",
-						"type": "string"
-					},
-					{
-						"name": "job_status",
-						"type": "string"
-					},
-					{
-						"name": "watermark",
-						"type": "timestamp"
-					},
-					{
-						"name": "created_on",
-						"type": "timestamp"
-					},
-					{
-						"name": "created_by",
-						"type": "string"
-					},
-					{
-						"name": "updated_on",
-						"type": "timestamp"
-					},
-					{
-						"name": "updated_by",
-						"type": "string"
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sales_onprem_getmetadata')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_onprem_file_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"source_folder": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_data_load"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"folderPath": {
-							"value": "@dataset().source_folder",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sales_onprem_binary')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_onprem_file_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"source_folder": {
-						"type": "string"
-					},
-					"source_file": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_data_load"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "FileServerLocation",
-						"fileName": {
-							"value": "@dataset().source_file",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().source_folder",
-							"type": "Expression"
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_sales_adlsgen2_target')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_adlsgen2_source",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"target_folder": {
-						"type": "string"
-					},
-					"target_file": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_data_load"
-				},
-				"annotations": [],
-				"type": "Binary",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().target_file",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@concat('landing/sales/',dataset().target_folder)",
-							"type": "Expression"
-						},
-						"fileSystem": "lake"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_adlsgen2_to_synapse_dwh')]",
+			"name": "[concat(parameters('factoryName'), '/pl_adb_notebooks')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "AdlsGen2ToSqlDWH",
-						"type": "Copy",
+						"name": "Notebook1",
+						"type": "DatabricksNotebook",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "7.00:00:00",
@@ -559,49 +103,12 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "SqlDWSink",
-								"preCopyScript": "truncate table [dbo].[customer_data]",
-								"writeBehavior": "Insert",
-								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
+							"notebookPath": "/Shared/sample"
 						},
-						"inputs": [
-							{
-								"referenceName": "ds_adlsgen2_csv_source",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_synapse_sqldwh_customer_target",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
+						"linkedServiceName": {
+							"referenceName": "ls_adb_workspace",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
 				"policy": {
@@ -610,7 +117,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adb_workspace')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/pl_onprem_file_to_blob')]",
@@ -811,9 +320,555 @@
 				},
 				"annotations": []
 			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adb_deltalake_lookup')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adb_deltalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "sales_data_load"
+				},
+				"annotations": [],
+				"type": "AzureDatabricksDeltaLakeDataset",
+				"typeProperties": {
+					"database": "jobs",
+					"table": "job_list_dynamic"
+				},
+				"schema": [
+					{
+						"name": "job_id",
+						"type": "string"
+					},
+					{
+						"name": "job_name",
+						"type": "string"
+					},
+					{
+						"name": "source_database_host",
+						"type": "string"
+					},
+					{
+						"name": "source_database_username",
+						"type": "string"
+					},
+					{
+						"name": "source_database_password",
+						"type": "string"
+					},
+					{
+						"name": "source_database_name",
+						"type": "string"
+					},
+					{
+						"name": "source_schema_name",
+						"type": "string"
+					},
+					{
+						"name": "source_table_name",
+						"type": "string"
+					},
+					{
+						"name": "source_file_path",
+						"type": "string"
+					},
+					{
+						"name": "source_file_username",
+						"type": "string"
+					},
+					{
+						"name": "source_file_password",
+						"type": "string"
+					},
+					{
+						"name": "source_folder_name",
+						"type": "string"
+					},
+					{
+						"name": "source_file_name",
+						"type": "string"
+					},
+					{
+						"name": "source_file_type",
+						"type": "string"
+					},
+					{
+						"name": "landing_zone_file_path",
+						"type": "string"
+					},
+					{
+						"name": "landing_zone_folder_name",
+						"type": "string"
+					},
+					{
+						"name": "landing_zone_file_name",
+						"type": "string"
+					},
+					{
+						"name": "landing_zone_file_type",
+						"type": "string"
+					},
+					{
+						"name": "staging_zone_database_name",
+						"type": "string"
+					},
+					{
+						"name": "staging_zone_schema_name",
+						"type": "string"
+					},
+					{
+						"name": "staging_zone_table_name",
+						"type": "string"
+					},
+					{
+						"name": "staging_zone_table_pk_column",
+						"type": "string"
+					},
+					{
+						"name": "curation_zone_database_name",
+						"type": "string"
+					},
+					{
+						"name": "curation_zone_schema_name",
+						"type": "string"
+					},
+					{
+						"name": "curation_zone_table_name",
+						"type": "string"
+					},
+					{
+						"name": "curation_zone_table_pk_column",
+						"type": "string"
+					},
+					{
+						"name": "dw_zone_database_name",
+						"type": "string"
+					},
+					{
+						"name": "dw_zone_schema_name",
+						"type": "string"
+					},
+					{
+						"name": "dw_zone_table_name",
+						"type": "string"
+					},
+					{
+						"name": "dw_zone_table_pk_column",
+						"type": "string"
+					},
+					{
+						"name": "raw_zone_file_path",
+						"type": "string"
+					},
+					{
+						"name": "raw_zone_folder_name",
+						"type": "string"
+					},
+					{
+						"name": "raw_zone_file_name",
+						"type": "string"
+					},
+					{
+						"name": "raw_zone_file_type",
+						"type": "string"
+					},
+					{
+						"name": "pyspark_schema",
+						"type": "string"
+					},
+					{
+						"name": "table_type",
+						"type": "string"
+					},
+					{
+						"name": "job_type",
+						"type": "string"
+					},
+					{
+						"name": "job_status",
+						"type": "string"
+					},
+					{
+						"name": "watermark",
+						"type": "timestamp"
+					},
+					{
+						"name": "created_on",
+						"type": "timestamp"
+					},
+					{
+						"name": "created_by",
+						"type": "string"
+					},
+					{
+						"name": "updated_on",
+						"type": "timestamp"
+					},
+					{
+						"name": "updated_by",
+						"type": "string"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_csv_pipe_dynamic_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"source_folder": {
+						"type": "string"
+					},
+					"source_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().source_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/saleshistory/',dataset().source_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					}
+				]
+			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_onprem_csv_file_source')]",
-				"[concat(variables('factoryId'), '/datasets/ds_onprem_file_binary_source')]"
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_csv_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "cusotmer_source.csv",
+						"folderPath": "landing/customer",
+						"fileSystem": "lake"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "'"
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "loc",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_saleshistory_archive_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"source_folder": {
+						"type": "string"
+					},
+					"source_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().source_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/saleshistory/',dataset().source_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_saleshistory_archive_target')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"target_folder": {
+						"type": "string"
+					},
+					"target_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat(dataset().target_file,utcnow(),'.csv')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('raw/saleshistory/',dataset().target_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_adlsgen2_target_binary_dynamic')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"target_folder": {
+						"type": "string"
+					},
+					"target_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().target_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/saleshistory/',dataset().target_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_orcl_onprem_customer_table_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_oracle_onprem_source",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "onprem_to_cloud"
+				},
+				"annotations": [],
+				"type": "OracleTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "SH",
+					"table": "CUSTOMERS"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_oracle_onprem_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sales_adlsgen2_target')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_adlsgen2_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"target_folder": {
+						"type": "string"
+					},
+					"target_file": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_data_load"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().target_file",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('landing/sales/',dataset().target_folder)",
+							"type": "Expression"
+						},
+						"fileSystem": "lake"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_adlsgen2_to_synapse_dwh')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AdlsGen2ToSqlDWH",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"preCopyScript": "truncate table [dbo].[customer_data]",
+								"writeBehavior": "Insert",
+								"sqlWriterUseTableLock": false,
+								"tableOption": "autoCreate",
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_adlsgen2_csv_source",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_synapse_sqldwh_customer_target",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_csv_source')]"
 			]
 		},
 		{
@@ -891,383 +946,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pl_sales_synapse_child_load')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "GetMetadataOnprem",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "ds_onprem_file_getmetadata",
-								"type": "DatasetReference",
-								"parameters": {
-									"source_folder": {
-										"value": "@pipeline().parameters.source_folder",
-										"type": "Expression"
-									}
-								}
-							},
-							"fieldList": [
-								"created",
-								"childItems",
-								"exists",
-								"itemName",
-								"lastModified",
-								"itemType"
-							],
-							"storeSettings": {
-								"type": "FileServerReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "BinaryReadSettings"
-							}
-						}
-					},
-					{
-						"name": "FilterOnlyFiles",
-						"type": "Filter",
-						"dependsOn": [
-							{
-								"activity": "GetMetadataOnprem",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('GetMetadataOnprem').output.childItems",
-								"type": "Expression"
-							},
-							"condition": {
-								"value": "@equals(item().type,'File')",
-								"type": "Expression"
-							}
-						}
-					},
-					{
-						"name": "OnPremToAdlsgen2",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "FilterOnlyFiles",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "BinarySource",
-								"storeSettings": {
-									"type": "FileServerReadSettings",
-									"recursive": true
-								},
-								"formatSettings": {
-									"type": "BinaryReadSettings"
-								}
-							},
-							"sink": {
-								"type": "BinarySink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_onprem_file_binary_dynamic",
-								"type": "DatasetReference",
-								"parameters": {
-									"source_folder": {
-										"value": "@pipeline().parameters.source_folder",
-										"type": "Expression"
-									},
-									"source_file": {
-										"value": "@activity('FilterOnlyFiles').output.value[0].name",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_adlsgen2_target_binary_dynamic",
-								"type": "DatasetReference",
-								"parameters": {
-									"target_folder": {
-										"value": "@pipeline().parameters.source_folder",
-										"type": "Expression"
-									},
-									"target_file": {
-										"value": "@activity('FilterOnlyFiles').output.value[0].name",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
-						"name": "Adlsgen2ToSQLStaging",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "OnPremToAdlsgen2",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "SqlDWSink",
-								"preCopyScript": {
-									"value": "truncate table @{pipeline().parameters.stg_table}",
-									"type": "Expression"
-								},
-								"writeBehavior": "Insert",
-								"sqlWriterUseTableLock": false,
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"enableSkipIncompatibleRow": true,
-							"validateDataConsistency": true,
-							"logSettings": {
-								"enableCopyActivityLog": true,
-								"copyActivityLogSettings": {
-									"logLevel": "Warning",
-									"enableReliableLogging": false
-								},
-								"logLocationSettings": {
-									"linkedServiceName": {
-										"referenceName": "ls_adlsgen2_source",
-										"type": "LinkedServiceReference"
-									},
-									"path": "lake/logs"
-								}
-							},
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_adlsgen2_csv_pipe_dynamic_source",
-								"type": "DatasetReference",
-								"parameters": {
-									"source_folder": {
-										"value": "@pipeline().parameters.source_folder",
-										"type": "Expression"
-									},
-									"source_file": {
-										"value": "@activity('FilterOnlyFiles').output.value[0].name",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_sqldwh_staging_dynamic_target",
-								"type": "DatasetReference",
-								"parameters": {
-									"schema_name": "dbo",
-									"table_name": {
-										"value": "@pipeline().parameters.stg_table",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
-						"name": "Target_proc",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Adlsgen2ToSQLStaging",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 3,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": {
-								"value": "@pipeline().parameters.proc_name",
-								"type": "Expression"
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "ls_azure_synapse_sqldwh",
-							"type": "LinkedServiceReference"
-						}
-					},
-					{
-						"name": "Archive",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Target_proc",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": true,
-							"secureInput": true
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "BinarySource",
-								"storeSettings": {
-									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
-									"deleteFilesAfterCompletion": true
-								},
-								"formatSettings": {
-									"type": "BinaryReadSettings"
-								}
-							},
-							"sink": {
-								"type": "BinarySink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_adlsgen2_saleshistory_archive_source",
-								"type": "DatasetReference",
-								"parameters": {
-									"source_folder": {
-										"value": "@pipeline().parameters.source_folder",
-										"type": "Expression"
-									},
-									"source_file": {
-										"value": "@activity('FilterOnlyFiles').output.value[0].name",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_adlsgen2_saleshistory_archive_target",
-								"type": "DatasetReference",
-								"parameters": {
-									"target_folder": {
-										"value": "@pipeline().parameters.source_folder",
-										"type": "Expression"
-									},
-									"target_file": {
-										"value": "@pipeline().parameters.job_name",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"parameters": {
-					"id": {
-						"type": "string"
-					},
-					"job_name": {
-						"type": "string"
-					},
-					"stg_table": {
-						"type": "string"
-					},
-					"target_table": {
-						"type": "string"
-					},
-					"proc_name": {
-						"type": "string"
-					},
-					"source_folder": {
-						"type": "string"
-					}
-				},
-				"folder": {
-					"name": "sales_synapse_load"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_onprem_file_getmetadata')]",
-				"[concat(variables('factoryId'), '/datasets/ds_onprem_file_binary_dynamic')]",
-				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_target_binary_dynamic')]",
-				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_saleshistory_archive_target')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/pl_sales_load_child')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -1302,6 +980,7 @@
 							],
 							"storeSettings": {
 								"type": "FileServerReadSettings",
+								"recursive": true,
 								"enablePartitionDiscovery": false
 							},
 							"formatSettings": {
@@ -1855,9 +1534,547 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_sales_onprem_getmetadata')]",
-				"[concat(variables('factoryId'), '/datasets/ds_sales_onprem_binary')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_adb_workspace')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sales_adlsgen2_target')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_sales_synapse_child_load')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "GetMetadataOnprem",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_onprem_file_getmetadata",
+								"type": "DatasetReference",
+								"parameters": {
+									"source_folder": {
+										"value": "@pipeline().parameters.source_folder",
+										"type": "Expression"
+									}
+								}
+							},
+							"fieldList": [
+								"created",
+								"childItems",
+								"exists",
+								"itemName",
+								"lastModified",
+								"itemType"
+							],
+							"storeSettings": {
+								"type": "FileServerReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "FilterOnlyFiles",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "GetMetadataOnprem",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('GetMetadataOnprem').output.childItems",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@equals(item().type,'File')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "OnPremToAdlsgen2",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "FilterOnlyFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "FileServerReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_onprem_file_binary_dynamic",
+								"type": "DatasetReference",
+								"parameters": {
+									"source_folder": {
+										"value": "@pipeline().parameters.source_folder",
+										"type": "Expression"
+									},
+									"source_file": {
+										"value": "@activity('FilterOnlyFiles').output.value[0].name",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_adlsgen2_target_binary_dynamic",
+								"type": "DatasetReference",
+								"parameters": {
+									"target_folder": {
+										"value": "@pipeline().parameters.source_folder",
+										"type": "Expression"
+									},
+									"target_file": {
+										"value": "@activity('FilterOnlyFiles').output.value[0].name",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Adlsgen2ToSQLStaging",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "OnPremToAdlsgen2",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "SqlDWSink",
+								"preCopyScript": {
+									"value": "truncate table @{pipeline().parameters.stg_table}",
+									"type": "Expression"
+								},
+								"writeBehavior": "Insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"enableSkipIncompatibleRow": true,
+							"validateDataConsistency": true,
+							"logSettings": {
+								"enableCopyActivityLog": true,
+								"copyActivityLogSettings": {
+									"logLevel": "Warning",
+									"enableReliableLogging": false
+								},
+								"logLocationSettings": {
+									"linkedServiceName": {
+										"referenceName": "ls_adlsgen2_source",
+										"type": "LinkedServiceReference"
+									},
+									"path": "lake/logs"
+								}
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_adlsgen2_csv_pipe_dynamic_source",
+								"type": "DatasetReference",
+								"parameters": {
+									"source_folder": {
+										"value": "@pipeline().parameters.source_folder",
+										"type": "Expression"
+									},
+									"source_file": {
+										"value": "@activity('FilterOnlyFiles').output.value[0].name",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_sqldwh_staging_dynamic_target",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema_name": "dbo",
+									"table_name": {
+										"value": "@pipeline().parameters.stg_table",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "Target_proc",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Adlsgen2ToSQLStaging",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": {
+								"value": "@pipeline().parameters.proc_name",
+								"type": "Expression"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_azure_synapse_sqldwh",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Archive",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Target_proc",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": true
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "BinarySource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"deleteFilesAfterCompletion": true
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							},
+							"sink": {
+								"type": "BinarySink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_adlsgen2_saleshistory_archive_source",
+								"type": "DatasetReference",
+								"parameters": {
+									"source_folder": {
+										"value": "@pipeline().parameters.source_folder",
+										"type": "Expression"
+									},
+									"source_file": {
+										"value": "@activity('FilterOnlyFiles').output.value[0].name",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_adlsgen2_saleshistory_archive_target",
+								"type": "DatasetReference",
+								"parameters": {
+									"target_folder": {
+										"value": "@pipeline().parameters.source_folder",
+										"type": "Expression"
+									},
+									"target_file": {
+										"value": "@pipeline().parameters.job_name",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"id": {
+						"type": "string"
+					},
+					"job_name": {
+						"type": "string"
+					},
+					"stg_table": {
+						"type": "string"
+					},
+					"target_table": {
+						"type": "string"
+					},
+					"proc_name": {
+						"type": "string"
+					},
+					"source_folder": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "sales_synapse_load"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_target_binary_dynamic')]",
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_csv_pipe_dynamic_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_saleshistory_archive_source')]",
+				"[concat(variables('factoryId'), '/datasets/ds_adlsgen2_saleshistory_archive_target')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_adlsgen2_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_sales_load_master')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "jobDetails",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureDatabricksDeltaLakeSource",
+								"query": {
+									"value": "select * from jobs.JOB_LIST_DYNAMIC where  job_status=1 order by job_id",
+									"type": "Expression"
+								}
+							},
+							"dataset": {
+								"referenceName": "ds_adb_deltalake_lookup",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "jobDetails",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('jobDetails').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "sales_child_pipeline",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "pl_sales_load_child",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"job_id": {
+												"value": "@item().job_id",
+												"type": "Expression"
+											},
+											"job_name": {
+												"value": "@item().job_name",
+												"type": "Expression"
+											},
+											"source_folder_name": {
+												"value": "@item().source_folder_name",
+												"type": "Expression"
+											},
+											"landing_zone_file_path": {
+												"value": "@item().landing_zone_file_path",
+												"type": "Expression"
+											},
+											"landing_zone_folder_name": {
+												"value": "@item().landing_zone_folder_name",
+												"type": "Expression"
+											},
+											"landing_zone_file_name": {
+												"value": "@item().landing_zone_file_name",
+												"type": "Expression"
+											},
+											"landing_zone_file_type": {
+												"value": "@item().landing_zone_file_type",
+												"type": "Expression"
+											},
+											"staging_zone_database_name": {
+												"value": "@item().staging_zone_database_name",
+												"type": "Expression"
+											},
+											"staging_zone_table_name": {
+												"value": "@item().staging_zone_table_name",
+												"type": "Expression"
+											},
+											"staging_zone_table_pk_column": {
+												"value": "@item().staging_zone_table_pk_column",
+												"type": "Expression"
+											},
+											"curation_zone_database_name": {
+												"value": "@item().curation_zone_database_name",
+												"type": "Expression"
+											},
+											"curation_zone_table_name": {
+												"value": "@item().curation_zone_table_name",
+												"type": "Expression"
+											},
+											"curation_zone_table_pk_column": {
+												"value": "@item().curation_zone_table_pk_column",
+												"type": "Expression"
+											},
+											"dw_zone_database_name": {
+												"value": "@item().dw_zone_database_name",
+												"type": "Expression"
+											},
+											"dw_zone_table_name": {
+												"value": "@item().dw_zone_table_name",
+												"type": "Expression"
+											},
+											"dw_zone_table_pk_column": {
+												"value": "@item().dw_zone_table_pk_column",
+												"type": "Expression"
+											},
+											"pyspark_schema": {
+												"value": "@item().pyspark_schema",
+												"type": "Expression"
+											},
+											"table_type": {
+												"value": "@item().table_type",
+												"type": "Expression"
+											},
+											"job_type": {
+												"value": "@item().job_type",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"folder": {
+					"name": "sales_data_load"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_adb_deltalake_lookup')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_sales_load_child')]"
 			]
 		},
 		{
@@ -1970,168 +2187,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/pl_sales_synapse_child_load')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pl_sales_load_master')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "jobDetails",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureDatabricksDeltaLakeSource",
-								"query": {
-									"value": "select * from jobs.JOB_LIST_DYNAMIC where  job_status=1 order by job_id",
-									"type": "Expression"
-								}
-							},
-							"dataset": {
-								"referenceName": "ds_adb_deltalake_lookup",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "ForEach1",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "jobDetails",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('jobDetails').output.value",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"activities": [
-								{
-									"name": "sales_child_pipeline",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "pl_sales_load_child",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"job_id": {
-												"value": "@item().job_id",
-												"type": "Expression"
-											},
-											"job_name": {
-												"value": "@item().job_name",
-												"type": "Expression"
-											},
-											"source_folder_name": {
-												"value": "@item().source_folder_name",
-												"type": "Expression"
-											},
-											"landing_zone_file_path": {
-												"value": "@item().landing_zone_file_path",
-												"type": "Expression"
-											},
-											"landing_zone_folder_name": {
-												"value": "@item().landing_zone_folder_name",
-												"type": "Expression"
-											},
-											"landing_zone_file_name": {
-												"value": "@item().landing_zone_file_name",
-												"type": "Expression"
-											},
-											"landing_zone_file_type": {
-												"value": "@item().landing_zone_file_type",
-												"type": "Expression"
-											},
-											"staging_zone_database_name": {
-												"value": "@item().staging_zone_database_name",
-												"type": "Expression"
-											},
-											"staging_zone_table_name": {
-												"value": "@item().staging_zone_table_name",
-												"type": "Expression"
-											},
-											"staging_zone_table_pk_column": {
-												"value": "@item().staging_zone_table_pk_column",
-												"type": "Expression"
-											},
-											"curation_zone_database_name": {
-												"value": "@item().curation_zone_database_name",
-												"type": "Expression"
-											},
-											"curation_zone_table_name": {
-												"value": "@item().curation_zone_table_name",
-												"type": "Expression"
-											},
-											"curation_zone_table_pk_column": {
-												"value": "@item().curation_zone_table_pk_column",
-												"type": "Expression"
-											},
-											"dw_zone_database_name": {
-												"value": "@item().dw_zone_database_name",
-												"type": "Expression"
-											},
-											"dw_zone_table_name": {
-												"value": "@item().dw_zone_table_name",
-												"type": "Expression"
-											},
-											"dw_zone_table_pk_column": {
-												"value": "@item().dw_zone_table_pk_column",
-												"type": "Expression"
-											},
-											"pyspark_schema": {
-												"value": "@item().pyspark_schema",
-												"type": "Expression"
-											},
-											"table_type": {
-												"value": "@item().table_type",
-												"type": "Expression"
-											},
-											"job_type": {
-												"value": "@item().job_type",
-												"type": "Expression"
-											}
-										}
-									}
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {},
-					"cancelAfter": {}
-				},
-				"folder": {
-					"name": "sales_data_load"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_adb_deltalake_lookup')]",
-				"[concat(variables('factoryId'), '/pipelines/pl_sales_load_child')]"
 			]
 		}
 	]
