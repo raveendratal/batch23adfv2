@@ -13,10 +13,6 @@
 				},
 				"secretName": "oracle-hs-password-akv-secret"
 			}
-		},
-		"connectVia": {
-			"referenceName": "SelfHosted-IR",
-			"type": "IntegrationRuntimeReference"
 		}
 	},
 	"type": "Microsoft.DataFactory/factories/linkedservices"
